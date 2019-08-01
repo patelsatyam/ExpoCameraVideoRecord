@@ -1,19 +1,37 @@
 import React from 'react';
-import { Dimensions, Text, View, TouchableOpacity, Alert, Button } from 'react-native';
+import { Dimensions, Text, View, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import Indicator from './ActivityIndicator';
 
 class MyReview extends React.Component {
     state = {
         RetakeVideo: false,
+        loading: false
     }
 
+    askPermissionsAsync = async () => {
+        await Permissions.askAsync(Permissions.CAMERA);
+        await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+    };
+
+    // componentDidMount() {
+    //     this.setState({ saving: false })
+    // }
     _saveVideo = async () => {
+
+        this.setState({ loading: true });
+
+        await this.askPermissionsAsync();
+
         const { video } = this.props;
+        console.log("----> save" + video.uri)
         const asset = await MediaLibrary.createAssetAsync(video.uri);
+        this.setState({ loading : false })
     }
 
 
@@ -26,7 +44,9 @@ class MyReview extends React.Component {
                 <TryVideoRecord />
             )
         }
-
+        if (this.state.saving) {
+            return <Indicator />
+        }
         return (
             <View>
                 <Video
@@ -44,6 +64,11 @@ class MyReview extends React.Component {
                     <Button title="Save" style={{}} onPress={() => { this._saveVideo() }} />
                     <Button title="Retake" onPress={() => { this.setState({ RetakeVideo: true }) }} />
                 </View>
+                {this.state.loading &&
+                    <View style={styles.loading}>
+                        <Indicator/>
+                    </View>
+                }
             </View>
         )
     }
@@ -65,6 +90,7 @@ export default class TryVideoRecord extends React.Component {
         this.setState({ hasCameraPermission: status === 'granted' });
     }
 
+    // function to take snap || click photo
     snap = async () => {
         if (this.camera) {
             let photo = await this.camera.takePictureAsync();
@@ -161,3 +187,15 @@ export default class TryVideoRecord extends React.Component {
         }
     }
 }
+
+const styles = StyleSheet.create({
+    loading: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+})

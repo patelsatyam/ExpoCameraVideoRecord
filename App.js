@@ -1,11 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import TryVideoRecord from './VideoRecord';
+import Indicator from './ActivityIndicator';
 
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
-      <TryVideoRecord />
+      <Indicator />
     </SafeAreaView>
   );
 }
