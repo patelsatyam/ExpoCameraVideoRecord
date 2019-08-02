@@ -6,7 +6,7 @@ import Indicator from './ActivityIndicator';
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
-      <Indicator />
+      <TryVideoRecord />
     </SafeAreaView>
   );
 }
