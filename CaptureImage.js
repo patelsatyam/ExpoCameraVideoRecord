@@ -1,16 +1,17 @@
 import React from 'react';
-import { Dimensions, Text, View, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
+import { Image, Dimensions, Text, View, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import Indicator from './ActivityIndicator';
 
 class MyReview extends React.Component {
     state = {
-        RetakeVideo: false,
-        loading: false
+        Retakeimage: false,
+        loading: false,
+        saving: false,
+        saved: false
     }
 
     askPermissionsAsync = async () => {
@@ -19,16 +20,16 @@ class MyReview extends React.Component {
 
     };
 
-    _saveVideo = async () => {
+    _saveimage = async () => {
 
         this.setState({ loading: true });
 
         await this.askPermissionsAsync();
 
-        const { video } = this.props;
-        console.log("----> save" + video.uri)
-        const asset = await MediaLibrary.createAssetAsync(video.uri);
-        this.setState({ loading: false })
+        const { image } = this.props;
+        console.log("----> save" + image.uri)
+        const asset = await MediaLibrary.createAssetAsync(image.uri);
+        this.setState({ loading: false, saved: true })
     }
 
 
@@ -36,9 +37,9 @@ class MyReview extends React.Component {
 
         const { width, height } = Dimensions.get('window');
 
-        if (this.state.RetakeVideo) {
+        if (this.state.Retakeimage || this.state.saved) {
             return (
-                <TryVideoRecord />
+                <CaptureImage />
             )
         }
         if (this.state.saving) {
@@ -46,20 +47,16 @@ class MyReview extends React.Component {
         }
         return (
             <View>
-                <Video
+                <Image
                     source={{
-                        uri: this.props.video.uri
+                        uri: this.props.image.uri
                     }}
-                    shouldPlay={true}
-                    resizeMode="cover"
-                    isLooping
                     style={{ width: width - 40, height: height - 80, marginTop: 20, borderRadius: 10, marginLeft: 20 }}
-                    isMuted={true}
                 />
                 <Text style={{ left: 30, position: 'absolute', top: 30, backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 10, paddingHorizontal: 5 }}>Preview</Text>
                 <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 20, justifyContent: 'space-between', bottom: 10, left: 10, right: 10, position: 'absolute', alignItems: 'center' }}>
-                    <Button title="Save" style={{}} onPress={() => { this._saveVideo() }} />
-                    <Button title="Retake" onPress={() => { this.setState({ RetakeVideo: true }) }} />
+                    <Button title="Save" style={{}} onPress={() => { this._saveimage() }} />
+                    <Button title="Retake" onPress={() => { this.setState({ Retakeimage: true }) }} />
                 </View>
                 {this.state.loading &&
                     <View style={styles.loading}>
@@ -73,13 +70,12 @@ class MyReview extends React.Component {
 }
 
 
-export default class TryVideoRecord extends React.Component {
+export default class CaptureImage extends React.Component {
     state = {
         hasCameraPermission: null,
-        video: null,
+        image: null,
         type: Camera.Constants.Type.back,
-        recording: false,
-        ReviewVideo: false
+        ReviewImage: false,
     };
 
     async componentDidMount() {
@@ -89,38 +85,14 @@ export default class TryVideoRecord extends React.Component {
 
     // function to take snap || click photo
     snap = async () => {
+
         if (this.camera) {
             let photo = await this.camera.takePictureAsync();
             console.log(photo);
+            this.setState({ image: photo })
         }
-    };
-
-    _StartRecord = async () => {
-        console.log("video record started")
-        if (this.camera) {
-            this.setState({ recording: true }, async () => {
-                const video = await this.camera.recordAsync();
-                this.setState({ video });
-                console.log(video)
-            });
-        }
-    }
-
-    _StopRecord = async () => {
-        this.setState({ recording: false }, () => {
-            this.camera.stopRecording();
-        });
-    };
 
 
-    toogleRecord = () => {
-        const { recording } = this.state;
-
-        if (recording) {
-            this._StopRecord();
-        } else {
-            this._StartRecord();
-        }
     };
 
 
@@ -130,9 +102,9 @@ export default class TryVideoRecord extends React.Component {
             return <View />;
         } else if (hasCameraPermission === false) {
             return <Text>No access to camera</Text>;
-        } else if (this.state.video) {
+        } else if (this.state.image) {
             return (
-                <MyReview video={this.state.video} />
+                <MyReview image={this.state.image} />
             )
         }
 
@@ -172,9 +144,9 @@ export default class TryVideoRecord extends React.Component {
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                onPress={() => { this.toogleRecord() }}
+                                onPress={() => { this.snap() }}
                             >
-                                <Ionicons name="ios-radio-button-on" size={70} color={this.state.recording ? "white" : "red"} />
+                                <Ionicons name="ios-aperture" size={70} color="white" />
                             </TouchableOpacity>
                         </View>
 
