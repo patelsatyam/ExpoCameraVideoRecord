@@ -5,6 +5,8 @@ import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { Ionicons } from '@expo/vector-icons';
 import Indicator from './ActivityIndicator';
+import * as ImagePicker from 'expo-image-picker';
+
 
 class MyReview extends React.Component {
     state = {
@@ -76,6 +78,7 @@ export default class CaptureImage extends React.Component {
         image: null,
         type: Camera.Constants.Type.back,
         ReviewImage: false,
+        FlashMode: Camera.Constants.FlashMode.off
     };
 
     async componentDidMount() {
@@ -96,6 +99,21 @@ export default class CaptureImage extends React.Component {
     };
 
 
+    _pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+        });
+
+        console.log(result);
+
+        if (!result.cancelled) {
+            this.setState({ image: result.uri });
+        }
+
+    };
+
     render() {
         const { hasCameraPermission } = this.state;
         if (hasCameraPermission === null) {
@@ -111,46 +129,63 @@ export default class CaptureImage extends React.Component {
 
         else {
             return (
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, backgroundColor: '#000' }}>
+                    <View style={{ marginTop: 30 }} />
                     <Camera
-                        style={{ flex: 1 }}
+                        style={{ flex: 0.85 }}
                         type={this.state.type}
+                        flashMode={this.state.FlashMode}
                         ref={ref => {
                             this.camera = ref;
                         }}
                     >
-                        <View
-                            style={{
-                                flex: 1,
-                                backgroundColor: 'transparent',
-                                flexDirection: 'row',
-                                justifyContent: 'space-evenly',
-                                position: 'absolute',
-                                left: 10,
-                                bottom: 2,
-                                right: 10
-                            }}>
-
-                            <TouchableOpacity
-                                onPress={() => {
-                                    this.setState({
-                                        type:
-                                            this.state.type === Camera.Constants.Type.back
-                                                ? Camera.Constants.Type.front
-                                                : Camera.Constants.Type.back,
-                                    });
-                                }}>
-                                <Ionicons name="ios-reverse-camera" size={70} color="white" />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={() => { this.snap() }}
-                            >
-                                <Ionicons name="ios-aperture" size={70} color="white" />
-                            </TouchableOpacity>
-                        </View>
-
                     </Camera>
+                    <View
+                        style={{
+                            flex: 1,
+                            backgroundColor: 'transparent',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            position: 'absolute',
+                            left: 20,
+                            bottom: 2,
+                            right: 20
+                        }}>
+
+                        <TouchableOpacity
+                            style={{ marginTop: 27 }}
+                            onPress={() => {
+                                this.setState({
+                                    type:
+                                        this.state.type === Camera.Constants.Type.back
+                                            ? Camera.Constants.Type.front
+                                            : Camera.Constants.Type.back,
+                                });
+                            }}>
+                            <Ionicons name="ios-reverse-camera" size={50} color="#fff" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => { this.snap() }}
+                        >
+                            <Text style={{ fontSize: 22, color: '#ffba01', textAlign: 'center' }} >photo</Text>
+                            <Ionicons name="ios-aperture" size={60} color="#fff" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={{ marginTop: 35 }}
+                            onPress={() => {
+                                this.setState({
+                                    FlashMode:
+                                        this.state.FlashMode === Camera.Constants.FlashMode.off
+                                            ? Camera.Constants.FlashMode.on
+                                            : Camera.Constants.FlashMode.off,
+                                });
+                            }}
+                        >
+                            <Ionicons name={ this.state.FlashMode ? "ios-flash" : "ios-flash-off"} size={35} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             );
         }
